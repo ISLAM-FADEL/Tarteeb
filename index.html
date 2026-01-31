@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tarteeb | HTI Final</title>
+  <title>Tarteeb | HTI Color Edition</title>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Inter:wght@400;600;800&family=Amiri:wght@700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -21,8 +21,6 @@
     }
     .dev-title { font-family: 'Fira Code', monospace; color: var(--cyan); font-weight: bold; font-size: 20px; }
     .btn-print-sm { padding: 6px 14px; background: var(--indigo); color: white; border: none; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; }
-
-    /* Developer Emoji Button */
     .btn-dev-emoji { background: none; border: 1px solid var(--border); font-size: 16px; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: 0.3s; }
 
     .layout { display: flex; gap: 20px; flex-wrap: wrap; }
@@ -53,14 +51,17 @@
     th { font-family: 'Fira Code'; font-size: 9px; color: #64748b; padding-bottom: 8px; }
     .day-head { background: var(--indigo); color: #fff; width: 60px; text-align: center; font-weight: 800; border-radius: 6px; font-size: 11px; }
 
+    /* Card Styling with Dynamic Colors */
     .card {
-      background: rgba(99, 102, 241, 0.08); border: 1px solid var(--border);
+      border: 1px solid var(--border);
       border-radius: 8px; padding: 8px; height: 100px; display: flex; flex-direction: column;
       justify-content: center; cursor: pointer; gap: 2px;
+      transition: transform 0.2s;
     }
-    .card-title { font-weight: 700; font-size: 11px; line-height: 1.1; color: #fff; }
-    .card-sub { font-size: 8.5px; color: #94a3b8; }
-    .card-code { font-size: 8px; color: var(--cyan); font-family: 'Fira Code'; margin-top: 3px; }
+    .card:hover { transform: scale(1.02); }
+    .card-title { font-weight: 800; font-size: 11px; line-height: 1.1; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+    .card-sub { font-size: 8.5px; color: rgba(255,255,255,0.8); font-weight: 600; }
+    .card-code { font-size: 8px; color: rgba(255,255,255,0.9); font-family: 'Fira Code'; margin-top: 3px; background: rgba(0,0,0,0.2); padding: 2px 4px; border-radius: 4px; align-self: flex-start; }
 
     /* Modal */
     #devModal {
@@ -84,8 +85,9 @@
       table { border: 1px solid black !important; }
       th, td { border: 0.5px solid black !important; color: black !important; }
       .day-head { background: #eee !important; color: black !important; }
-      .card { background: transparent !important; border-left: 3px solid black !important; height: 85px !important; }
-      .card-title, .card-sub, .card-code { color: black !important; }
+      .card { background: transparent !important; border: none !important; border-left: 4px solid black !important; height: 85px !important; }
+      .card-title, .card-sub, .card-code { color: black !important; text-shadow: none !important; }
+      .card-code { background: none !important; padding: 0 !important; }
       .dua { color: black !important; font-size: 18px !important; margin-top: 5px !important; }
       .hti-dedication { color: black !important; font-size: 9px !important; }
       @page { size: A4 landscape; margin: 0.5cm; }
@@ -167,6 +169,25 @@
   const days = ["SAT", "SUN", "MON", "TUE", "WED"];
   const matrix = ["09:00-09:45", "09:45-10:30", "10:30-11:15", "11:15-12:00", "12:00-12:45", "12:45-01:30", "01:30-02:15", "02:15-03:00"];
 
+  // دالة لتوليد لون ثابت بناءً على اسم المادة
+  function getCourseColor(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const h = Math.abs(hash) % 360;
+    return `hsla(${h}, 70%, 45%, 0.3)`; // لون خلفية هادئ
+  }
+
+  function getCourseBorder(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const h = Math.abs(hash) % 360;
+    return `hsla(${h}, 80%, 60%, 1)`; // لون إطار بارز
+  }
+
   function init() {
     const s = document.getElementById('sP'), e = document.getElementById('eP'), ex = document.getElementById('exP'), hr = document.getElementById('hRow');
     matrix.forEach((h, i) => {
@@ -219,9 +240,13 @@
         if(item) {
           let span = 1;
           for(let nxt=s+1; nxt<=8; nxt++) if(db.find(n => n.day === d && n.slot === nxt && n.title === item.title)) { span++; skip.add(nxt); } else break;
+          
+          const bgColor = getCourseColor(item.title);
+          const borderColor = getCourseBorder(item.title);
+          
           td.colSpan = span;
           td.innerHTML = `
-            <div class="card" onclick="remove('${item.title}', ${d})">
+            <div class="card" onclick="remove('${item.title}', ${d})" style="background: ${bgColor}; border-left: 4px solid ${borderColor}; border-top: 1px solid ${borderColor}; border-bottom: 1px solid ${borderColor}; border-right: 1px solid ${borderColor};">
               <div class="card-title">${item.title}</div>
               <div class="card-sub">📍 ${item.hall || '--'}</div>
               <div class="card-sub">👨‍🏫 ${item.doc || '--'}</div>
@@ -238,10 +263,10 @@
   function undo() { if(history.length) { db = JSON.parse(history.pop()); render(); save(); } }
   function save() {
     const p = { n: document.getElementById('iName').value, i: document.getElementById('iID').value, c: document.getElementById('iColl').value, d: document.getElementById('iDept').value };
-    localStorage.setItem('tarteeb_final_v5', JSON.stringify({db, p}));
+    localStorage.setItem('tarteeb_color_v1', JSON.stringify({db, p}));
   }
   function load() {
-    const s = JSON.parse(localStorage.getItem('tarteeb_final_v5'));
+    const s = JSON.parse(localStorage.getItem('tarteeb_color_v1'));
     if(s) {
       db = s.db || [];
       document.getElementById('iName').value = s.p.n || ''; document.getElementById('iID').value = s.p.i || '';
