@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tarteeb | HTI</title>
+  <title>Tarteeb | HTI Final</title>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Inter:wght@400;600;800&family=Amiri:wght@700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -24,7 +24,6 @@
 
     /* Developer Emoji Button */
     .btn-dev-emoji { background: none; border: 1px solid var(--border); font-size: 16px; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: 0.3s; }
-    .btn-dev-emoji:hover { border-color: var(--cyan); background: rgba(34, 211, 238, 0.1); }
 
     .layout { display: flex; gap: 20px; flex-wrap: wrap; }
     
@@ -57,10 +56,11 @@
     .card {
       background: rgba(99, 102, 241, 0.08); border: 1px solid var(--border);
       border-radius: 8px; padding: 8px; height: 100px; display: flex; flex-direction: column;
-      justify-content: space-between; cursor: pointer;
+      justify-content: center; cursor: pointer; gap: 2px;
     }
-    .card-title { font-weight: 700; font-size: 11.5px; line-height: 1.2; color: #fff; }
-    .card-sub { font-size: 9px; color: #94a3b8; }
+    .card-title { font-weight: 700; font-size: 11px; line-height: 1.1; color: #fff; }
+    .card-sub { font-size: 8.5px; color: #94a3b8; }
+    .card-code { font-size: 8px; color: var(--cyan); font-family: 'Fira Code'; margin-top: 3px; }
 
     /* Modal */
     #devModal {
@@ -70,10 +70,10 @@
     .modal-box { background: var(--panel); padding: 30px; border-radius: 20px; border: 1px solid var(--cyan); width: 320px; text-align: left; }
     .dev-line { background: rgba(0,0,0,0.4); padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 3px solid var(--indigo); font-family: 'Fira Code'; font-size: 12px; }
 
-    /* Footer */
+    /* Footer Section */
     .footer-section { margin-top: 15px; text-align: center; }
-    .dua { font-family: 'Amiri'; font-size: 22px; color: white; margin-bottom: 5px; }
-    .hti-dedication { font-size: 11px; color: #64748b; font-weight: bold; }
+    .dua { font-family: 'Amiri'; font-size: 20px; color: white; margin-bottom: 5px; }
+    .hti-dedication { font-size: 10px; color: #64748b; font-weight: bold; }
 
     @media print {
       .no-print { display: none !important; }
@@ -85,9 +85,9 @@
       th, td { border: 0.5px solid black !important; color: black !important; }
       .day-head { background: #eee !important; color: black !important; }
       .card { background: transparent !important; border-left: 3px solid black !important; height: 85px !important; }
-      .card-title, .card-sub { color: black !important; }
+      .card-title, .card-sub, .card-code { color: black !important; }
       .dua { color: black !important; font-size: 18px !important; margin-top: 5px !important; }
-      .hti-dedication { color: black !important; font-size: 10px !important; margin-top: 0 !important; }
+      .hti-dedication { color: black !important; font-size: 9px !important; }
       @page { size: A4 landscape; margin: 0.5cm; }
     }
   </style>
@@ -193,9 +193,17 @@
     if(sp && ep) for(let i=sp; i<=ep; i++) slots.add(i);
     if(exp) slots.add(exp);
     slots.forEach(slot => {
-      db.push({ title, day: parseInt(document.getElementById('day').value), slot, code: document.getElementById('cCode').value, hall: document.getElementById('cHall').value, doc: document.getElementById('cDoc').value });
+      db.push({ 
+        title, 
+        day: parseInt(document.getElementById('day').value), 
+        slot, 
+        code: document.getElementById('cCode').value, 
+        hall: document.getElementById('cHall').value, 
+        doc: document.getElementById('cDoc').value 
+      });
     });
-    render(); save(); document.getElementById('cTitle').value = "";
+    render(); save(); 
+    document.getElementById('cTitle').value = ""; document.getElementById('cCode').value = "";
   }
 
   function render() {
@@ -212,7 +220,13 @@
           let span = 1;
           for(let nxt=s+1; nxt<=8; nxt++) if(db.find(n => n.day === d && n.slot === nxt && n.title === item.title)) { span++; skip.add(nxt); } else break;
           td.colSpan = span;
-          td.innerHTML = `<div class="card" onclick="remove('${item.title}', ${d})"><div class="card-title">${item.title}</div><div class="card-sub">📍 ${item.hall || '--'}</div><div class="card-sub">👨‍🏫 ${item.doc || '--'}</div></div>`;
+          td.innerHTML = `
+            <div class="card" onclick="remove('${item.title}', ${d})">
+              <div class="card-title">${item.title}</div>
+              <div class="card-sub">📍 ${item.hall || '--'}</div>
+              <div class="card-sub">👨‍🏫 ${item.doc || '--'}</div>
+              <div class="card-code">${item.code || ''}</div>
+            </div>`;
         } else td.innerHTML = `<div style="height:100px; border:1px dashed #1e293b; border-radius:8px;"></div>`;
         tr.appendChild(td);
       }
@@ -224,10 +238,10 @@
   function undo() { if(history.length) { db = JSON.parse(history.pop()); render(); save(); } }
   function save() {
     const p = { n: document.getElementById('iName').value, i: document.getElementById('iID').value, c: document.getElementById('iColl').value, d: document.getElementById('iDept').value };
-    localStorage.setItem('tarteeb_vfinal_fixed', JSON.stringify({db, p}));
+    localStorage.setItem('tarteeb_final_v5', JSON.stringify({db, p}));
   }
   function load() {
-    const s = JSON.parse(localStorage.getItem('tarteeb_vfinal_fixed'));
+    const s = JSON.parse(localStorage.getItem('tarteeb_final_v5'));
     if(s) {
       db = s.db || [];
       document.getElementById('iName').value = s.p.n || ''; document.getElementById('iID').value = s.p.i || '';
