@@ -1,1 +1,287 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Biomedical Engineering Schedule Pro</title>
+  <style>
+    :root{
+      --bg0:#0b1020; --bg1:#0f1733; --card:#0f1b3a; --text:#e9ecff;
+      --muted:#aab3da; --border:rgba(255,255,255,.10); --shadow: 0 18px 60px rgba(0,0,0,.45);
+      --radius: 18px; --accent:#7c6cff; --danger:#ff4d6d;
+    }
+    [data-theme="light"]{
+      --bg0:#f6f7ff; --bg1:#ffffff; --card: rgba(255,255,255,.85);
+      --text:#0b1020; --muted:#4b5563; --border:rgba(15,23,42,.14);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family: ui-sans-serif, system-ui, sans-serif; color: var(--text);
+      min-height: 100vh; background: linear-gradient(145deg, var(--bg0), var(--bg1)); padding: 20px;
+    }
+    .container{max-width: 1200px; margin: 0 auto;}
+    .topbar{
+      display:flex; justify-content:space-between; align-items:center;
+      padding: 18px; border: 1px solid var(--border); background: rgba(15,27,58,.65);
+      backdrop-filter: blur(12px); border-radius: var(--radius); margin-bottom: 20px;
+    }
+    .btn{
+      border: 1px solid var(--border); background: rgba(255,255,255,.06);
+      color: var(--text); padding: 10px 14px; border-radius: 12px; cursor:pointer;
+      font-weight:600; font-size: 13px; transition: 0.2s;
+    }
+    .btn:hover{background: var(--accent); color: white;}
+    .btn.primary{background: var(--accent); color: white;}
+    .grid{display:grid; grid-template-columns: 350px 1fr; gap:20px;}
+    @media (max-width: 980px){ .grid{grid-template-columns: 1fr;} }
+    .card{
+      border: 1px solid var(--border); background: rgba(15,27,58,.58);
+      border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow);
+    }
+    input, select{
+      width:100%; background: rgba(255,255,255,.06); color: var(--text);
+      border: 1px solid var(--border); padding: 10px; border-radius: 10px; margin: 5px 0;
+    }
+    .tableWrap{ border: 1px solid var(--border); border-radius: 14px; overflow: hidden; background: rgba(0,0,0,0.1); }
+    table{width:100%; border-collapse: collapse; text-align: center;}
+    th, td{padding: 12px; border: 1px solid rgba(255,255,255,.05);}
+    th{background: rgba(255,255,255,.03); color: var(--muted); font-size: 12px;}
+    .time-td{font-size: 10px; color: var(--accent); font-weight: bold; width: 90px;}
+    .course-pill{
+      background: rgba(124, 108, 255, 0.15); border-left: 4px solid var(--accent);
+      padding: 8px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer;
+    }
+
+    @media print {
+      body { background: white !important; color: black !important; padding: 10px; }
+      .topbar, .actions, .sidebar-form, .btn { display: none !important; }
+      .grid { display: block !important; }
+      .card { border: none !important; background: white !important; box-shadow: none !important; padding: 0 !important; }
+      .tableWrap { border: 2px solid #000 !important; border-radius: 0 !important; }
+      th, td { border: 1px solid #000 !important; color: black !important; padding: 8px !important; }
+      .course-pill { background: #f2f2f2 !important; border-left: 4px solid black !important; color: black !important; }
+      .student-info-print { display: block !important; margin-bottom: 10px; }
+      .print-footer { display: block !important; position: fixed; bottom: 0; width: 100%; text-align: center; border-top: 1px solid #000; padding: 10px 0; }
+    }
+    .student-info-print, .print-footer { display: none; }
+    .modalBack{ position:fixed; inset:0; background:rgba(0,0,0,0.8); display:none; align-items:center; justify-content:center; z-index:100; }
+    .modal{ background: var(--bg1); border: 1px solid var(--accent); padding: 30px; border-radius: var(--radius); width: 380px; text-align: center; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="student-info-print" id="printHeader">
+    <div style="text-align: center; margin-bottom: 10px;">
+      <h1 style="font-size: 22px; margin-bottom: 5px;">Biomedical Engineering Department</h1>
+      <p style="font-size: 14px; font-weight: bold;">Academic Schedule Card</p>
+    </div>
+    <div id="printDetails" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 14px; border: 1px solid #000; padding: 10px;"></div>
+  </div>
+
+  <div class="topbar">
+    <div>
+      <h2 style="font-size: 18px;">Biomedical Engineering Dept.</h2>
+      <p style="color: var(--muted); font-size: 12px;">Schedule Builder v6.5</p>
+    </div>
+    <div class="actions">
+      <button class="btn" onclick="toggleTheme()" id="themeBtn">🌙 Dark</button>
+      <button class="btn" onclick="toggleDev(true)">👨‍💻 Developers</button>
+      <button class="btn" onclick="undo()">↩︎ Undo</button>
+      <button class="btn primary" onclick="printSchedule()">🖨️ PDF Print</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <section class="card sidebar-form">
+      <h3>Student Info</h3>
+      <input type="text" id="stdName" placeholder="Full Name">
+      <input type="text" id="stdID" placeholder="Student ID">
+      <input type="text" id="stdCollege" placeholder="College">
+      <input type="text" id="stdDept" placeholder="Department">
+      
+      <hr style="margin: 15px 0; opacity: 0.1;">
+      
+      <h3>Add Course</h3>
+      <input type="text" id="courseName" placeholder="Course Title">
+      <select id="daySelect">
+        <option value="1">Saturday</option><option value="2">Sunday</option>
+        <option value="3">Monday</option><option value="4">Tuesday</option><option value="5">Wednesday</option>
+      </select>
+      
+      <div style="display: flex; gap: 5px;">
+        <select id="startSlot"><option value="">Start</option></select>
+        <select id="endSlot"><option value="">End</option></select>
+      </div>
+      <label style="font-size: 11px; color: var(--muted); margin-top:5px; display:block;">Optional Extra Period:</label>
+      <select id="extraSlot"><option value="">None</option></select>
+
+      <button class="btn primary" style="width: 100%; margin-top: 15px;" onclick="addCourse()">➕ Add to Schedule</button>
+      <button class="btn" style="width: 100%; margin-top: 8px; border-color:var(--danger); color:var(--danger);" onclick="clearAll()">🧹 Clear All</button>
+    </section>
+
+    <section class="card" style="padding: 0;">
+      <div class="tableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th><th>Sat</th><th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th>
+            </tr>
+          </thead>
+          <tbody id="scheduleBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <div class="print-footer">
+    <p style="font-style: italic; font-size: 14px; margin-bottom: 5px;">( والله في عون العبد ما كان العبد في عون أخيه )</p>
+    <p style="font-weight: bold; font-size: 12px;">إهداء من قسم الهندسة الحيوية الطبية</p>
+    <p style="font-size: 10px;">Biomedical Engineering Department</p>
+  </div>
+</div>
+
+<div id="devModal" class="modalBack">
+  <div class="modal">
+    <h2 style="color: var(--accent);">Developer Team</h2>
+    <p style="margin: 15px 0;">🚀 <b>Islam Osman Ahmed</b></p>
+    <p style="margin: 15px 0;">🚀 <b>Omar Mekki</b></p>
+    <hr style="opacity:0.1; margin: 10px 0;">
+    <p style="font-size: 12px;">Special Thanks to</p>
+    <h3 style="color: var(--accent);">Biomedical Engineering Department</h3>
+    <button class="btn primary" style="margin-top: 20px; width: 100%;" onclick="toggleDev(false)">Close</button>
+  </div>
+</div>
+
+<script>
+  let courses = [];
+  let historyStack = [];
+  const times = ["08:30-09:15", "09:15-10:00", "10:00-10:45", "11:00-11:45", "11:45-12:30", "12:30-01:15", "01:30-02:15", "02:15-03:00", "03:00-03:45"];
+
+  function init() {
+    const s = document.getElementById('startSlot'), e = document.getElementById('endSlot'), ex = document.getElementById('extraSlot');
+    for(let i=1; i<=9; i++) {
+      s.innerHTML += `<option value="${i}">${i}</option>`;
+      e.innerHTML += `<option value="${i}">${i}</option>`;
+      ex.innerHTML += `<option value="${i}">${i}</option>`;
+    }
+    loadState(); render();
+  }
+
+  function addCourse() {
+    const name = document.getElementById('courseName').value.trim();
+    const day = parseInt(document.getElementById('daySelect').value);
+    const start = parseInt(document.getElementById('startSlot').value);
+    const end = parseInt(document.getElementById('endSlot').value);
+    const extra = parseInt(document.getElementById('extraSlot').value);
+
+    if(!name || (!start && !extra)) return alert("الرجاء إدخال اسم المادة والوقت!");
+
+    // --- فحص التضارب (Conflict Check) ---
+    let requestedSlots = [];
+    if(start && end) { for(let i=start; i<=end; i++) requestedSlots.push(i); }
+    if(extra) requestedSlots.push(extra);
+
+    for(let slot of requestedSlots) {
+      const conflict = courses.find(c => c.day === day && c.slot === slot);
+      if(conflict) {
+        return alert(`خطأ: هذا الموعد (الفترة ${slot}) مشغول بالفعل بمادة: ${conflict.name}`);
+      }
+    }
+    // ------------------------------------
+
+    saveHistory();
+    if(start && end) { for(let i=start; i<=end; i++) courses.push({ name, day, slot: i }); }
+    if(extra) courses.push({ name, day, slot: extra });
+
+    render(); saveState();
+    document.getElementById('courseName').value = "";
+  }
+
+  function render() {
+    const tbody = document.getElementById('scheduleBody');
+    tbody.innerHTML = "";
+    const skip = new Set();
+    for(let s=1; s<=9; s++) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td class="time-td">P${s}<br>${times[s-1]}</td>`;
+      for(let d=1; d<=5; d++) {
+        if(skip.has(`${d}-${s}`)) continue;
+        const td = document.createElement('td');
+        const item = courses.find(c => c.day === d && c.slot === s);
+        if(item) {
+          let span = 1;
+          for(let next = s+1; next <= 9; next++) {
+            if(courses.find(c => c.day === d && c.slot === next && c.name === item.name)) {
+              span++; skip.add(`${d}-${next}`);
+            } else break;
+          }
+          td.rowSpan = span;
+          td.innerHTML = `<div class="course-pill" onclick="deleteItem('${item.name}', ${d})">${item.name}</div>`;
+        } else {
+          td.innerHTML = `<span style="opacity:0.1">-</span>`;
+        }
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    }
+  }
+
+  function printSchedule() {
+    const details = document.getElementById('printDetails');
+    details.innerHTML = `
+      <div><b>Name:</b> ${document.getElementById('stdName').value || '---'}</div>
+      <div><b>ID:</b> ${document.getElementById('stdID').value || '---'}</div>
+      <div><b>College:</b> ${document.getElementById('stdCollege').value || '---'}</div>
+      <div><b>Dept:</b> ${document.getElementById('stdDept').value || '---'}</div>
+    `;
+    window.print();
+  }
+
+  function deleteItem(name, day) {
+    if(confirm(`Remove ${name}?`)) {
+      saveHistory();
+      courses = courses.filter(c => !(c.name === name && c.day === day));
+      render(); saveState();
+    }
+  }
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    if(html.hasAttribute('data-theme')) {
+      html.removeAttribute('data-theme'); document.getElementById('themeBtn').innerText = "🌙 Dark";
+    } else {
+      html.setAttribute('data-theme', 'light'); document.getElementById('themeBtn').innerText = "☀️ Light";
+    }
+  }
+
+  function toggleDev(s) { document.getElementById('devModal').style.display = s ? 'flex' : 'none'; }
+  function saveHistory() { historyStack.push(JSON.stringify(courses)); }
+  function undo() { if(historyStack.length) { courses = JSON.parse(historyStack.pop()); render(); saveState(); } }
+  function clearAll() { if(confirm("Clear everything?")) { saveHistory(); courses = []; render(); saveState(); } }
+  
+  function saveState() {
+    const student = {
+      n: document.getElementById('stdName').value,
+      i: document.getElementById('stdID').value,
+      c: document.getElementById('stdCollege').value,
+      d: document.getElementById('stdDept').value
+    };
+    localStorage.setItem('bio_v6_final_v4', JSON.stringify({courses, student}));
+  }
+  function loadState() {
+    const data = JSON.parse(localStorage.getItem('bio_v6_final_v4'));
+    if(data) {
+      courses = data.courses || [];
+      document.getElementById('stdName').value = data.student.n || '';
+      document.getElementById('stdID').value = data.student.i || '';
+      document.getElementById('stdCollege').value = data.student.c || '';
+      document.getElementById('stdDept').value = data.student.d || '';
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>
