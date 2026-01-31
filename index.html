@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tarteeb | HTI Color Edition</title>
+  <title>Tarteeb | HTI Full Color PDF</title>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Inter:wght@400;600;800&family=Amiri:wght@700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -51,17 +51,13 @@
     th { font-family: 'Fira Code'; font-size: 9px; color: #64748b; padding-bottom: 8px; }
     .day-head { background: var(--indigo); color: #fff; width: 60px; text-align: center; font-weight: 800; border-radius: 6px; font-size: 11px; }
 
-    /* Card Styling with Dynamic Colors */
     .card {
-      border: 1px solid var(--border);
       border-radius: 8px; padding: 8px; height: 100px; display: flex; flex-direction: column;
       justify-content: center; cursor: pointer; gap: 2px;
-      transition: transform 0.2s;
     }
-    .card:hover { transform: scale(1.02); }
-    .card-title { font-weight: 800; font-size: 11px; line-height: 1.1; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
-    .card-sub { font-size: 8.5px; color: rgba(255,255,255,0.8); font-weight: 600; }
-    .card-code { font-size: 8px; color: rgba(255,255,255,0.9); font-family: 'Fira Code'; margin-top: 3px; background: rgba(0,0,0,0.2); padding: 2px 4px; border-radius: 4px; align-self: flex-start; }
+    .card-title { font-weight: 800; font-size: 11px; line-height: 1.1; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+    .card-sub { font-size: 8.5px; color: rgba(255,255,255,0.9); font-weight: 600; }
+    .card-code { font-size: 8px; color: rgba(255,255,255,1); font-family: 'Fira Code'; margin-top: 3px; background: rgba(0,0,0,0.15); padding: 2px 4px; border-radius: 4px; align-self: flex-start; }
 
     /* Modal */
     #devModal {
@@ -71,25 +67,27 @@
     .modal-box { background: var(--panel); padding: 30px; border-radius: 20px; border: 1px solid var(--cyan); width: 320px; text-align: left; }
     .dev-line { background: rgba(0,0,0,0.4); padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 3px solid var(--indigo); font-family: 'Fira Code'; font-size: 12px; }
 
-    /* Footer Section */
+    /* Footer */
     .footer-section { margin-top: 15px; text-align: center; }
     .dua { font-family: 'Amiri'; font-size: 20px; color: white; margin-bottom: 5px; }
     .hti-dedication { font-size: 10px; color: #64748b; font-weight: bold; }
 
+    /* PRINT SYSTEM - COLOR ENABLED */
     @media print {
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       .no-print { display: none !important; }
       body { background: white !important; color: black !important; padding: 0; }
       .main-content { border: none !important; background: white !important; width: 100% !important; padding: 0 !important; }
-      .profile-grid { border: 1px solid black !important; margin-bottom: 10px !important; }
+      .profile-grid { border: 1.5px solid #eee !important; background: #f9f9f9 !important; margin-bottom: 10px !important; }
       .profile-item span, .profile-item label { color: black !important; }
-      table { border: 1px solid black !important; }
-      th, td { border: 0.5px solid black !important; color: black !important; }
-      .day-head { background: #eee !important; color: black !important; }
-      .card { background: transparent !important; border: none !important; border-left: 4px solid black !important; height: 85px !important; }
-      .card-title, .card-sub, .card-code { color: black !important; text-shadow: none !important; }
-      .card-code { background: none !important; padding: 0 !important; }
+      table { border: 1px solid #ddd !important; }
+      th { color: #666 !important; }
+      .day-head { background: #333 !important; color: white !important; }
+      .card { height: 85px !important; border: 1px solid rgba(0,0,0,0.1) !important; }
+      .card-title { color: white !important; }
+      .card-sub, .card-code { color: white !important; }
       .dua { color: black !important; font-size: 18px !important; margin-top: 5px !important; }
-      .hti-dedication { color: black !important; font-size: 9px !important; }
+      .hti-dedication { color: #444 !important; font-size: 9px !important; }
       @page { size: A4 landscape; margin: 0.5cm; }
     }
   </style>
@@ -101,7 +99,7 @@
   <div style="display:flex; gap:10px; align-items:center;">
     <button onclick="toggleModal(true)" class="btn-dev-emoji">👨‍💻</button>
     <button onclick="undo()" class="btn-print-sm" style="background:none; border:1px solid var(--border); color:#94a3b8;">UNDO</button>
-    <button onclick="window.print()" class="btn-print-sm">PRINT PDF</button>
+    <button onclick="window.print()" class="btn-print-sm">PRINT PDF (WITH COLORS)</button>
   </div>
 </div>
 
@@ -169,23 +167,11 @@
   const days = ["SAT", "SUN", "MON", "TUE", "WED"];
   const matrix = ["09:00-09:45", "09:45-10:30", "10:30-11:15", "11:15-12:00", "12:00-12:45", "12:45-01:30", "01:30-02:15", "02:15-03:00"];
 
-  // دالة لتوليد لون ثابت بناءً على اسم المادة
   function getCourseColor(str) {
     let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    }
+    for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
     const h = Math.abs(hash) % 360;
-    return `hsla(${h}, 70%, 45%, 0.3)`; // لون خلفية هادئ
-  }
-
-  function getCourseBorder(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const h = Math.abs(hash) % 360;
-    return `hsla(${h}, 80%, 60%, 1)`; // لون إطار بارز
+    return `hsla(${h}, 65%, 40%, 1)`; // لون غامق مشبع ليظهر بوضوح في الطباعة
   }
 
   function init() {
@@ -214,14 +200,7 @@
     if(sp && ep) for(let i=sp; i<=ep; i++) slots.add(i);
     if(exp) slots.add(exp);
     slots.forEach(slot => {
-      db.push({ 
-        title, 
-        day: parseInt(document.getElementById('day').value), 
-        slot, 
-        code: document.getElementById('cCode').value, 
-        hall: document.getElementById('cHall').value, 
-        doc: document.getElementById('cDoc').value 
-      });
+      db.push({ title, day: parseInt(document.getElementById('day').value), slot, code: document.getElementById('cCode').value, hall: document.getElementById('cHall').value, doc: document.getElementById('cDoc').value });
     });
     render(); save(); 
     document.getElementById('cTitle').value = ""; document.getElementById('cCode').value = "";
@@ -240,13 +219,10 @@
         if(item) {
           let span = 1;
           for(let nxt=s+1; nxt<=8; nxt++) if(db.find(n => n.day === d && n.slot === nxt && n.title === item.title)) { span++; skip.add(nxt); } else break;
-          
-          const bgColor = getCourseColor(item.title);
-          const borderColor = getCourseBorder(item.title);
-          
+          const color = getCourseColor(item.title);
           td.colSpan = span;
           td.innerHTML = `
-            <div class="card" onclick="remove('${item.title}', ${d})" style="background: ${bgColor}; border-left: 4px solid ${borderColor}; border-top: 1px solid ${borderColor}; border-bottom: 1px solid ${borderColor}; border-right: 1px solid ${borderColor};">
+            <div class="card" onclick="remove('${item.title}', ${d})" style="background: ${color}; border-left: 5px solid rgba(0,0,0,0.3);">
               <div class="card-title">${item.title}</div>
               <div class="card-sub">📍 ${item.hall || '--'}</div>
               <div class="card-sub">👨‍🏫 ${item.doc || '--'}</div>
@@ -263,10 +239,10 @@
   function undo() { if(history.length) { db = JSON.parse(history.pop()); render(); save(); } }
   function save() {
     const p = { n: document.getElementById('iName').value, i: document.getElementById('iID').value, c: document.getElementById('iColl').value, d: document.getElementById('iDept').value };
-    localStorage.setItem('tarteeb_color_v1', JSON.stringify({db, p}));
+    localStorage.setItem('tarteeb_color_pdf_v2', JSON.stringify({db, p}));
   }
   function load() {
-    const s = JSON.parse(localStorage.getItem('tarteeb_color_v1'));
+    const s = JSON.parse(localStorage.getItem('tarteeb_color_pdf_v2'));
     if(s) {
       db = s.db || [];
       document.getElementById('iName').value = s.p.n || ''; document.getElementById('iID').value = s.p.i || '';
